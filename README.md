@@ -2,7 +2,7 @@
 
 Esta es la entrega final para el curso de JavaScript en coder house.
 
-#descripción
+Descripción:
 
 Este proyecto es una aplicación web que permite a los usuarios invocar y interactuar con perosnajes del juego Fate/Grand Order
 puedes ver su perfil, escuchar sus voces y incluso pelear junto a ellos en un juego de combate por turnos
