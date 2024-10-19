@@ -7,6 +7,8 @@
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     <title>Fate Grand Order Game</title>
+    <link rel="icon" type="image/x-icon" href="images/FGO icon.png">
+
 </head>
 <body>
     <header>
@@ -32,15 +34,32 @@
             </div>
         </nav>
     </header>
-
+    <div id="tutorialContainer" class="tutorial-container">
+        <div class="tutorial-content">
+            <img src="images/img_face_matth02.png" alt="Mash Kyrielight" class="mash-image" />
+            <div id="tutorialText" class="tutorial-text"></div>
+            <button id="nextBtn" class="btn btn-outline-secondary">Siguiente</button>
+        </div>
+    </div>
     <main id="mainContent">
         <div id="classIconsContainer" class="class-icons-container d-flex justify-content-center"></div>
         <div id="servantsContainer"></div>
-
+        <div id="teamContainer">
+            <div id="qpDisplay" class="text-center mb-3"></div>
+            <div id="teamMembers" class="d-flex flex-wrap justify-content-center"></div>
+        </div>
+        <div id="game">
+            <div id="sectionsContainer" class="container d-flex flex-column align-items-center"></div>
+            <div id="combatArea" class="d-flex flex-column justify-content-center align-items-center vh-100"></div>
+        </div>
+      
     </main>
 
 
-    <script src="app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="app.js"></script>
+
 </body>
 </html>
