@@ -8,3 +8,5 @@ Este proyecto es una aplicación web que permite a los usuarios invocar y intera
 Puedes ver su perfil, escuchar sus voces y incluso pelear junto a ellos en un juego de combate por turnos.
 
 El proyecto hace uso de las librerías SweetAlert2 y Anime.js para una mejor experiencia de usuario.
+
+Nota: La api puede demorar aproximadamente un minuto en cargarse.
