@@ -1,4 +1,4 @@
-
+const navbarBrand = document.getElementById("navbarBrand");
 const servantsContainer = document.getElementById("servantsContainer");
 const classIconsContainer = document.getElementById("classIconsContainer");
 const mainContent = document.getElementById("mainContent");
@@ -78,9 +78,18 @@ viewServantsBtn.addEventListener("click", ()=> {
     game.style.display = "none";
     loadClassIcons();
 });
+navbarBrand.addEventListener("click", () => {
+    if (battleMusic) {
+        battleMusic.pause();
+        battleMusic.currentTime = 0;
+    }
+    servantsContainer.style.display = "block";
+    teamContainer.style.display = "none";
+    game.style.display = "none";
+    loadClassIcons(); 
+});
 
 //Logica del tutorial:
-
 
 //Comienza el tutorial llamando a typeText que escribe el primer paso del array
 const startTutorial = () => {
