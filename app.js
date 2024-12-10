@@ -179,7 +179,16 @@ const endTutorial = () => {
 const showMainContent = () => {
     mainContent.style.display = "block";
 };
-
+const servantStats = {
+    saber: { gameHp: 1500, gameDmg: 300 },
+    archer: { gameHp: 1200, gameDmg: 350 },
+    lancer: { gameHp: 1400, gameDmg: 320 },
+    rider: { gameHp: 1300, gameDmg: 330 },
+    caster: { gameHp: 1000, gameDmg: 400 },
+    assassin: { gameHp: 1100, gameDmg: 360 },
+    berserker: { gameHp: 900, gameDmg: 450 },
+    shielder: { gameHp: 2000, gameDmg: 200 }
+};
 
 /*Metodo para añadir un Servant a tu equipo.
 Checkea que el Servant no este en tu equipo y que el tamaño de tu equipo sea >=3
@@ -204,7 +213,6 @@ const addServantToTeam = (servant) => {
         servant.gameLevel = 1;
         servant.gameNpAvaialable = true;
         servant.gameAlive = true;
-        servant.gameMaxHp = servant.gameHp;
         assignStatsByClass(servant);
         team.push(servant);
         saveTeamToStorage();
@@ -238,16 +246,7 @@ const servantClassArrays = {
     shielder: [shielderServant]
 };
 
-const servantStats = {
-    saber: { gameHp: 1500, gameDmg: 300 },
-    archer: { gameHp: 1200, gameDmg: 350 },
-    lancer: { gameHp: 1400, gameDmg: 320 },
-    rider: { gameHp: 1300, gameDmg: 330 },
-    caster: { gameHp: 1000, gameDmg: 400 },
-    assassin: { gameHp: 1100, gameDmg: 360 },
-    berserker: { gameHp: 900, gameDmg: 450 },
-    shielder: { gameHp: 2000, gameDmg: 200 }
-};
+
 
 /*Metodo encargado de asignar las estadisticas de los servants segun su clase
 y actualizarlas si estos suben de nivel*/
@@ -299,7 +298,6 @@ const filterServantsByClass = (className) => {
     servants.forEach(servant => {
         const servantCard = document.createElement("div");
         servantCard.classList.add('col-4', 'col-md-3', 'mb-4');
-        console.log(servant);
 
         servantCard.innerHTML = `
         <div class="card h-100">
@@ -454,7 +452,6 @@ const filterServantsByClass = (className) => {
                 </div>
             </div>
             `;
-            console.log(servant);
             servantCard.querySelector(".view-details-btn").addEventListener("click", ()=>{
                 showServantDetails(servant);
             });
@@ -475,7 +472,17 @@ const filterServantsByClass = (className) => {
 
     //Se crea una alerta que contiene detalles del perfil del Servant
     const showServantDetails = (servant) => {
-        let ascensionFaceImage = servant.extraAssets.faces.ascension[servant.gameLevel];
+        let ascensionFaceImage;
+        if (servant.gameLevel === 3) {
+            ascensionFaceImage = servant.extraAssets.faces.ascension[2]; 
+        } else if (servant.gameLevel === 4) {
+            ascensionFaceImage = servant.extraAssets.faces.ascension[3]; 
+        } else if (servant.gameLevel === 5) {
+            ascensionFaceImage = servant.extraAssets.faces.ascension[4]; 
+        } else {
+            ascensionFaceImage = servant.extraAssets.faces.ascension[servant.gameLevel];
+        }
+        
         const profile6 = servant.profile.comments[6] ? `
         <div class="mb-3 border p-3">
                 <strong>Profile 6</strong>
@@ -758,6 +765,7 @@ const filterServantsByClass = (className) => {
         id: 1,
         name: "Skeleton",
         hp: 3500,
+        maxHp: 3500,
         attack: 300,
         alive: true,
         image: "images/Skeleton_SaberCut.png",
@@ -768,6 +776,7 @@ const filterServantsByClass = (className) => {
         id: 2,
         name: "Dragon",
         hp:8500,
+        maxHp: 8500,
         attack: 450,
         alive: true,
         image: "images/GreatDragon_Sheet.webp",
@@ -779,6 +788,7 @@ const filterServantsByClass = (className) => {
         id: 3,
         name: "Altria Alter",
         hp: 11500,
+        maxHp: 11500,
         attack: 550,
         alive: true,
         noblePhantasm:"Excalibur Morgan",
@@ -842,6 +852,10 @@ const filterServantsByClass = (className) => {
             <h2 class="text-center">Enemy: ${enemy.name}</h2>
             <img src="${enemy.image}" alty="${enemy.name}" class="img-fluid mb-3 enemy-image" />
             <p class="text-center">HP: <span id="enemyHp">${enemy.hp}</span></p>
+            <div class="progress mb-3">
+                <div id="enemyHpBar" class="progress-bar bg-danger" role="progressbar" style="width: 100%;"></div>
+            </div>
+
         </div>
         <div id="teamArea" class="d-flex justify-content-center flex-wrap mb-4">
         ${team.map((servant, index) => {
@@ -861,6 +875,9 @@ const filterServantsByClass = (className) => {
                     <h3>${servant.name}</h3>
                     <img class="img-fluid mb-2 rounded" src="${ascensionFaceImage}" alt="${servant.name}" />
                     <p>HP: <span id="servantHp${index}">${servant.gameHp}</span></p>
+                    <div class="progress mb-2">
+                        <div id="servantHpBar${index}" class="progress-bar bg-success" role="progressbar" style="width: 100%;"></div>
+                    </div>
                     <p>DMG: <span id="servantDmg${index}">${servant.gameDmg}</span></p>
                     <button class="btn btn-success me-2" id="attackBtn${index}" disabled>Attack</button>
                     <button class="btn btn-warning me-2" id="npBtn${index}" disabled>Noble Phantasm</button>
@@ -870,7 +887,12 @@ const filterServantsByClass = (className) => {
     </div>
 `;
         combatArea.appendChild(logArea);
-                
+        updateHealthBar(document.getElementById("enemyHpBar"), enemy.hp, enemy.maxHp);
+        
+        team.forEach((servant, index) => {
+            const servantHpBar = document.getElementById(`servantHpBar${index}`);
+            updateHealthBar(servantHpBar, servant.gameHp, servant.maxHp);
+        });
     };
 
     //Encargado de mostrarle al usuario lo que pasa en combate con texto
@@ -902,42 +924,40 @@ const filterServantsByClass = (className) => {
 
     /*Gestiona que botones estan habilitados para que Servant */
     const displayActionsForCurrentTurn = () => {
-        const servant = team[currentTurn];
-        logMessage(`${servant.name}'s Turn`);
+    const servant = team[currentTurn];
+    if (!servant.gameAlive) {
+        currentTurn++;
+        nextTurn();
+        return; 
+    }
+    logMessage(`${servant.name}'s Turn`);
 
-        //Checkea si Altria Alter esta usando su ataque especial, de esta forma el usuario no puede pegarle mientras se ejecuta la animación.
-        if (isUsingNoblePhantasm) {
-            document.getElementById(`attackBtn${currentTurn}`).disabled = true;
-            document.getElementById(`npBtn${currentTurn}`).disabled = true;
-            return;
-        }
-     
-        document.getElementById(`attackBtn${currentTurn}`).disabled = false;
-        document.getElementById(`npBtn${currentTurn}`).disabled = !servant.gameNpAvaialable; //Solo se habilita si gameNpAvailable es true
+    enableActionButtons(); // Habilitar/deshabilitar botones de manera centralizada
 
+    // Manejador para el botón de ataque
+    document.getElementById(`attackBtn${currentTurn}`).onclick = () => {
+        if (isAudioPlayingGlobal) return; // Evitar ataques si hay audio en curso
 
-        //onclick para atacar, cuando el Servant ataca se deshabilitan los 2 botones.
-        document.getElementById(`attackBtn${currentTurn}`).onclick = ()=>{
         animateServantAttack(currentTurn);
-           attack(servant);
-           document.getElementById(`attackBtn${currentTurn}`).disabled = true;
-           document.getElementById(`npBtn${currentTurn}`).disabled = true;
-           
-           currentTurn++;
-            nextTurn();
-        };
+        attack(servant);
 
-        //onclick para el ataque especial, cuando el Servant ataca se deshabilitan los 2 botones y gameNpAvailable es false.
-        document.getElementById(`npBtn${currentTurn}`).onclick = ()=>{
-            useNoblePhantasm(servant);
-            document.getElementById(`attackBtn${currentTurn}`).disabled = true;
-            document.getElementById(`npBtn${currentTurn}`).disabled = true;
-            servant.gameNpAvaialable = false;
-             currentTurn++;
-             nextTurn();
-         };
+        document.getElementById(`attackBtn${currentTurn}`).disabled = true;
+        document.getElementById(`npBtn${currentTurn}`).disabled = true;
 
     };
+
+    // Manejador para el Noble Phantasm
+    document.getElementById(`npBtn${currentTurn}`).onclick = () => {
+        if (isAudioPlayingGlobal) return; // Evitar acciones si hay audio en curso
+        useNoblePhantasm(servant);
+
+        document.getElementById(`attackBtn${currentTurn}`).disabled = true;
+        document.getElementById(`npBtn${currentTurn}`).disabled = true;
+
+
+    };
+};
+
     /*Se encarga este método de avanzar el turno del combate
      alternando entre los Servants y el enemigo */
     const nextTurn = () => {
@@ -975,9 +995,6 @@ const filterServantsByClass = (className) => {
                 }
             }
         }
-        
-        console.log(currentTurn);
-
     };
     //Actualiza las stats de manera dinámica en el combate
     const updateStats = () => {
@@ -985,22 +1002,42 @@ const filterServantsByClass = (className) => {
         team.forEach((servant, index) => {
             document.getElementById(`servantHp${index}`).innerText = servant.gameHp;
             animateHpChange(index);
+            
+            const attackBtn = document.getElementById(`attackBtn${index}`);
+            const npBtn = document.getElementById(`npBtn${index}`);
+
             //Si el Servant esta muerto su imagen cambia a blanco y negro
             if(!servant.gameAlive){
+                attackBtn.disabled = true;
+                npBtn.disabled = true;
                 const servantImage = document.querySelector(`#servant${index} img`);
                 servantImage.style.filter = "grayscale(100%)";
                 
             }
         });
     };
+
+    const calculateDamage = (baseDamage, variationPercentage = 10) => {
+        const variation = baseDamage * (variationPercentage / 100);
+        const minDamage = Math.floor(baseDamage - variation);
+        const maxDamage = Math.ceil(baseDamage + variation);
+        return Math.floor(Math.random() * (maxDamage - minDamage +1)) + minDamage;
+    }
     /*El Servant ataca y se le resta el daño que hace a la vida del enemigo
     Se llama a una linea de voz y se actualizan las stats */
     const attack = (servant) => {
         if(enemy.hp > 0){
-            playVoiceline(servant, "attack");
-            const damage = servant.gameDmg;
-            enemy.hp -= damage;
-            logMessage(`${servant.name} deals ${damage}!`);
+            playVoiceline(servant, "attack", () => {
+                currentTurn++;
+                nextTurn();
+            });
+            
+            const baseDamage = servant.gameDmg;
+            const actualDamage = calculateDamage(baseDamage);
+            enemy.hp -= actualDamage;
+            if (enemy.hp < 0) enemy.hp = 0; // Evitar valores negativos
+            updateHealthBar(document.getElementById("enemyHpBar"), enemy.hp, enemy.maxHp);
+            logMessage(`${servant.name} deals ${actualDamage}!`);
             updateStats();
             animateEnemyDamage();
         }
@@ -1009,15 +1046,30 @@ const filterServantsByClass = (className) => {
     //Similar a el metodo de attack pero con el ataque especial
     const useNoblePhantasm = (servant) => {
         if(servant.gameNpAvaialable){
-            animateUserNoblePhantasm(team.indexOf(servant));
-            const damage = Math.floor(servant.gameDmg * 1.4);
-            enemy.hp -= damage;
             servant.gameNpAvaialable = false;
-            playVoiceline(servant, "noblephantasm")
-           
-            logMessage(`<strong style ="color:blue;">${servant.name} uses ${servant.noblePhantasms[0].name} and deals ${damage} damage!</strong>`);
-            updateStats();
-            animateEnemyDamage();
+            noblePhantasmCinematic(servant.name, servant.noblePhantasms[0].name);
+
+            setTimeout(()=>{    
+            animateUserNoblePhantasm(team.indexOf(servant));
+
+            playVoiceline(servant, "noblephantasm", null, () => {
+                const baseDamage = Math.floor(servant.gameDmg * 1.4);
+                const actualDamage = calculateDamage(baseDamage);
+                
+                enemy.hp -= actualDamage;
+                if (enemy.hp < 0) enemy.hp = 0; // Evitar valores negativos
+                updateHealthBar(document.getElementById("enemyHpBar"), enemy.hp, enemy.maxHp);
+    
+                logMessage(`<strong style ="color:blue;">${servant.name} uses ${servant.noblePhantasms[0].name} and deals ${actualDamage} damage!</strong>`); 
+            
+                updateStats();
+                animateEnemyDamage();
+    
+                currentTurn++;
+                nextTurn();
+            });  
+            
+            }, 3000);
         }
     };
     
@@ -1073,9 +1125,12 @@ const filterServantsByClass = (className) => {
             }
             //El servant recibe daño del enemigo
             else {
-                const damage = enemy.attack;
-                targetServant.gameHp -= damage;
-                logMessage(`<strong style="color:purple;">${enemy.name} attacks ${targetServant.name} and deals ${damage}!</strong>`);
+                const baseDamage = enemy.attack;
+                const actualDamage = calculateDamage(baseDamage);
+                targetServant.gameHp -= actualDamage;
+                if(targetServant.gameHp < 0) targetServant.gameHp = 0;
+                updateHealthBar(document.getElementById(`servantHpBar${team.indexOf(targetServant)}`), targetServant.gameHp, targetServant.maxHp);
+                logMessage(`<strong style="color:purple;">${enemy.name} attacks ${targetServant.name} and deals ${actualDamage}!</strong>`);
                 updateStats();
             }
         
@@ -1119,11 +1174,7 @@ const filterServantsByClass = (className) => {
             .flatMap(line=>line.subtitle);
 
         const randomTextFile = victoryTextAssets[randomIndexGlobal];
-        console.log("randomIndex win game " + randomIndexGlobal);
 
-        console.log(victoryVoiceLines);
-        console.log(victoryTextAssets);
-        console.log(randomTextFile);
         enemy.hp = 0;
         updateStats();
 
@@ -1220,44 +1271,56 @@ del Servant*/
         }
     };
   
-    /*Metodo para el ataque especial de Altria Alter, reproduce una linea de voz y una animación con una sweetAlert incluida */
+    /*Metodo para el ataque especial de Altria Alter, reproduce una linea de voz y una animación*/
     const altriaNoblePhantasm = () => {
         logMessage(`<strong style="color:red;">Altria Alter uses Excalibur Morgan!</strong>`);
-        
-        playSpecificVoiceLine(enemies[2].noblePhantasmAudio);
-        
-        animateExcaliburMorgan();
-        showNoblePhantasmAlert("Vortigern, Hammer of the Vile King, reverse the rising sun. Swallow the light, Excalibur Morgan")
-        
-        //Esto deshabilita los botones para que el usuario no la pueda atacar mientras ejecuta la animación
-        isUsingNoblePhantasm = true;
-
-        //Timeout para que se haga la animación
-        setTimeout(() => {
-        team.forEach(servant =>{
-            if(servant.gameAlive){
-                const npDamage = 1000;
-                servant.gameHp -= npDamage;
-                logMessage(`<span style ="color:red;">${servant.name} takes ${npDamage} damage from Excalibur Morgan!</span>`);
-                updateStats();
-                if(servant.gameHp <= 0){
-                    servant.gameAlive = false;
-                    logMessage(`<strong style="color:red;">${servant.name} has been defeated by Artoria Alter's Noble Phantasm!</strong>`);
-                    playVoiceline(servant, "incapacitated");
-                    updateStats();
-                }
-            }
-            
-        });
-
-        
-        if(team.every(servant => !servant.gameAlive)){
-            loseGame();
-        }
-        isUsingNoblePhantasm = false;
-        nextTurn();
-    }, 11000);
+                
+        showNoblePhantasmOverlay(
+            "Altria Alter || Excalibur Morgan",
+            "Vortigern, Hammer of the Vile King, reverse the rising sun. Swallow the light, Excalibur Morgan",
+            enemies[2].noblePhantasmAudio,
+            () => {
+                // Esto deshabilita los botones para que el usuario no la pueda atacar mientras ejecuta la animación
+                isUsingNoblePhantasm = true;
     
+                // Timeout para que se haga la animación y daño
+                
+                    team.forEach((servant) => {
+                        if (servant.gameAlive) {
+                            const npBaseDamage = 1000;
+                            const npActualDamage = calculateDamage(npBaseDamage);
+                            servant.gameHp -= npActualDamage;
+                            if (servant.gameHp < 0) servant.gameHp = 0;
+                            updateHealthBar(
+                                document.getElementById(`servantHpBar${team.indexOf(servant)}`),
+                                servant.gameHp,
+                                servant.maxHp
+                            );
+                            logMessage(
+                                `<span style="color:red;">${servant.name} takes ${npActualDamage} damage from Excalibur Morgan!</span>`
+                            );
+                            updateStats();
+                            if (servant.gameHp <= 0) {
+                                servant.gameAlive = false;
+                                logMessage(
+                                    `<strong style="color:red;">${servant.name} has been defeated by Artoria Alter's Noble Phantasm!</strong>`
+                                );
+                                playVoiceline(servant, "incapacitated");
+                                updateStats();
+                            }
+                        }
+                    });
+    
+                    // Verificar si todos los Servants están muertos
+                    if (team.every((servant) => !servant.gameAlive)) {
+                        loseGame(); // Finalizar el juego si todos están muertos
+                    } 
+                    isUsingNoblePhantasm = false;
+                    nextTurn();
+                }
+            );
+    
+        // Ejecutar la animación de Excalibur Morgan
     };
 
     const resetGame = () => {
@@ -1274,22 +1337,45 @@ del Servant*/
         enemies[2].alive = true;
         isGameWon = false;
     };
+    const enableActionButtons = () => {
+        const attackBtn = document.getElementById(`attackBtn${currentTurn}`);
+        const npBtn = document.getElementById(`npBtn${currentTurn}`);
+        const servant = team[currentTurn];
+    
+        if (!servant.gameAlive || isAudioPlayingGlobal || isUsingNoblePhantasm) {
+            attackBtn.disabled = true;
+            npBtn.disabled = true;
+        } else {
+            attackBtn.disabled = false;
+            npBtn.disabled = !servant.gameNpAvaialable; // Habilitar solo si el Noble Phantasm está disponible
+        }
+    };
     
     //Se usa para reproducir el audio de Altria Alter
     const playSpecificVoiceLine = (audioAssets) => {
         if (audioAssets && audioAssets.length > 0) {
+            let currentAudio = null;
             const playAudioSequence = (audioFiles, index = 0) => {
                 if (index < audioFiles.length) {
-                    const audio = new Audio(audioFiles[index]);
-                    audio.play();
-                    audio.addEventListener("ended", () => {
+                    currentAudio = new Audio(audioFiles[index]);
+                    currentAudio.play();
+                    currentAudio.addEventListener("ended", () => {
                         playAudioSequence(audioFiles, index + 1);
                     });
                 }
             };
             playAudioSequence(audioAssets);
+            return {
+                stop: () => {
+                    if(currentAudio){
+                        currentAudio.pause();
+                        currentAudio.currentTime = 0;
+                    }
+                }
+            };
         } else {
             console.error("No audio files found for this voice line.");
+            return {stop: () => {}};
         }
     };
     //El texto de la api te devuelve el datos que no quiero mostrar en el texto, esta regex los elimina
@@ -1297,10 +1383,12 @@ del Servant*/
         return text.replace(/\[.*?\]/g, '').trim();
     };
 
+    let isNoblePhantasmRunning = false; 
+    let isAudioPlayingGlobal = false;
     /*Metodo para reproducir las voces de los servants, el parametro type decide que tipo de voz se ejecuta
     por ejemplo un type de "attack" va buscar los audioAssets que perteneceN a los audios de ataque
     */
-    const playVoiceline = (servant, type) => {
+    const playVoiceline = (servant, type, onComplete = () => {}, onComplete2 = () => {}) => {
 
         //Almacena las rutas de los audios
         let selectedLines = [];
@@ -1310,6 +1398,7 @@ del Servant*/
         //Reproduce los audios almacenados en audioFiles
         const playAudioSequence = (audioFiles, index = 0) => {
             if (index < audioFiles.length) {
+                isAudioPlayingGlobal = true;
                 currentAudio = new Audio(audioFiles[index]); //El audio en el indice actual
                 currentAudio.play();
 
@@ -1326,6 +1415,16 @@ del Servant*/
                     playAudioSequence(audioFiles, index + 1);
                     
                 });
+            } else {
+                isAudioPlayingGlobal = false;
+                if(type.toLowerCase() === "noblephantasm"){
+                    if (isNoblePhantasmRunning) return; // Evita ejecutar si ya está en curso
+                    isNoblePhantasmRunning = true;
+                    onComplete2();
+                }
+                else if(type.toLowerCase() === "attack"){
+                    onComplete();
+                }
             }
         };
     
@@ -1343,47 +1442,69 @@ del Servant*/
                 const randomAudioFile = attackAudioAssets[randomIndex];
                 //Se almacena el audio en selectedLines
                 selectedLines = [randomAudioFile];
-                console.log("randomAudioFile: " + randomAudioFile);
             }
     
         } else if (type.toLowerCase() === "noblephantasm") {
+            if (isNoblePhantasmRunning) return; // Evita ejecutar si ya está en curso
+            isNoblePhantasmRunning = true;
             const noblePhantasmVoicelines = servant.profile.voices.find(voice => voice.type === "treasureDevice").voiceLines;
             const randomLine = noblePhantasmVoicelines[Math.floor(Math.random() * noblePhantasmVoicelines.length)];
             selectedLines = randomLine.audioAssets;
-            noblePhantasmText = randomLine.subtitle;
-            noblePhantasmText = cleanApiText(noblePhantasmText);
+            noblePhantasmText = cleanApiText(randomLine.subtitle);
     
-            const title =`${servant.noblePhantasms[0].name} || ${servant.name}`;
+            const overlay = document.createElement("div");
+            overlay.id = "npOverlay";
+            overlay.innerHTML = `
+                <div class="np-effect text-center">
+                    <h2>${servant.noblePhantasms[0].name} || ${servant.name}</h2>
+                    <p id="npText" class="noble-phantasm-text"></p>
+                </div>
+            `;
+    document.body.appendChild(overlay);
+
+    // Animar entrada del overlay
+    anime({
+        targets: "#npOverlay",
+        opacity: [0, 1],
+        duration: 500,
+        easing: "easeOutQuad",
+    });
+     
+    const npTextElement = document.getElementById("npText");
+    let index = 0;
+    const interval = setInterval(() => {
+    if (index < noblePhantasmText.length) {
+        npTextElement.textContent += noblePhantasmText[index];
+        index++;
+    } else {
+        clearInterval(interval);
+    }
+    }, 55);
+                  
     
-            Swal.fire({
-                title: title,
-                html: '<p></p>',
-                backdrop: true,
-                showConfirmButton: false,
-                //Se muestran las palabras letra por letra
-                didOpen: () => {
-                    const swalText = Swal.getHtmlContainer().querySelector('p');
-                    swalText.textContent = "";
-                    let index = 0;
-    
-                    const interval = setInterval(() => {
-                        if (index < noblePhantasmText.length) {
-                            swalText.textContent += noblePhantasmText[index];
-                            index++;
-                        } else {
-                            clearInterval(interval);
-                        }
-                    }, 55);
-                },
-                //Al cerrarse la alerta se para el audio del ataque especial.
-                didClose: () => {
-                    if (currentAudio) {
-                        currentAudio.pause();
-                        currentAudio.currentTime = 0;
-                    }
-                    checkEnemyStatus();
-                }
-            });
+     //Salir al hacer click en pantalla
+     const skipOverlay = () => {
+        clearInterval(interval);
+        if(currentAudio){
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+    isAudioPlayingGlobal = false;
+        anime({
+            targets: "#npOverlay",
+            opacity: [1, 0],
+            duration: 500,
+            easing: "easeInQuad",
+            complete: () => {
+                overlay.remove();
+                isNoblePhantasmRunning = false;
+                onComplete2();
+            }
+        });
+        document.removeEventListener("click", skipOverlay);
+     };
+     document.addEventListener("click", skipOverlay);
+
     
         } else if (type.toLowerCase() === "victory") {
             const victoryVoiceLines = servant.profile.voices.find(voice => voice.type === "battle").voiceLines;
@@ -1411,10 +1532,10 @@ del Servant*/
     
         } else if (type.toLowerCase() === "summon") {
             const summonVoiceLines = servant.profile.voices[2]?.voiceLines;
-            console.log(summonVoiceLines);
             if (summonVoiceLines.length > 0) {
                 const randomLine = summonVoiceLines[Math.floor(Math.random() * summonVoiceLines.length)];
                 selectedLines = randomLine.audioAssets;
+            }
                 Swal.fire({
                     title: `${servant.name} has been summoned!`,
                     html: `
@@ -1431,7 +1552,7 @@ del Servant*/
                         }
                     }
                 });
-            }
+           
     
         } 
          else if (type.toLowerCase() === "homevoicelines") {
@@ -1478,7 +1599,9 @@ del Servant*/
                 }
             });
         }else if(type.toLowerCase() === "ascension"){
-            const ascensionVoiceLines = servant.profile.voices.find(voice => voice.type === "groeth").voiceLines;
+            const ascensionVoiceLines = servant.profile.voices.
+            filter(voice => voice.type === "groeth")
+            .flatMap(voice => voice.voiceLines);
 
             let ascensionLine;
             if(servant.gameLevel === 5){
@@ -1486,7 +1609,6 @@ del Servant*/
             }else{
                 ascensionLine = ascensionVoiceLines.find(line => line.condType === "svtLimit" && line.condValue === servant.gameLevel -1);
             }
-            console.log(ascensionLine);
             selectedLines = ascensionLine ?  ascensionLine.audioAssets : null;
             let ascensionText = ascensionLine ? ascensionLine.subtitle : "Your Servant has leveled up!";
             ascensionText = cleanApiText(ascensionText);
@@ -1545,20 +1667,55 @@ del Servant*/
         if (selectedLines && selectedLines.length > 0) {
             playAudioSequence(selectedLines);
         } 
-    
+        currentAudio.addEventListener("play", () => {
+            // Marcar que el audio está reproduciéndose
+            isAudioPlayingGlobal = true;
+        
+            // Deshabilitar botones y proporcionar feedback visual
+            document.getElementById(`attackBtn${currentTurn}`).disabled = true;
+            document.getElementById(`npBtn${currentTurn}`).disabled = true;
+        });
+        currentAudio.addEventListener("ended", () => {
+            // Marcar que el audio ha terminado
+            isAudioPlayingGlobal = false;
+        
+            // Habilitar botones
+        });
     };
     
    
     //Animaciones para las peleas
-
+    const criticalHitEffect = () => {
+        const combatArea = document.getElementById("combatArea");
+        anime({
+            targets: combatArea,
+            backgroundColor: ["#fff", "#ff0000", "#fff"],
+            easing: "easeInOutSine",
+            duration: 300,
+            loop: 2,
+        });
+    };
     const animateEnemyDamage = () => {
         const enemyImage = document.querySelector(".enemy-image");
         anime({
             targets: enemyImage,
-            scale: [1,1.1,1],
+            scale: [1,1.2,1],
             translateX: [-10,10,-10, 0],
-            easing: "easeInOutQuad",
-            duration: 600
+            opacity: [1, 0.8, 1],
+            easing: "easeOutElastic",
+            duration: 500
+        });
+
+        const hitEffect = document.createElement("div");
+        hitEffect.classList.add("hit-effect");
+
+        anime({
+            targets: hitEffect,
+            scale: [0.5, 1.5],
+            opacity: [1,0],
+            easing: "easeOutCubic",
+            duration: 500,
+            complete: () => hitEffect.remove(),
         });
     };
 
@@ -1582,23 +1739,34 @@ del Servant*/
         });
     };
 
-    const animateExcaliburMorgan = () => {
-        const altriaImage = document.querySelector(".enemy-img");
+    const noblePhantasmCinematic = (servantName, text) => {
+
+        const overlay = document.createElement("div");
+        overlay.id = "npOverlay";
+        overlay.innerHTML = `
+        <div class ="np-effect text-center">
+            <h2>${servantName} Activates Noble Phantasm!</h2>
+            <p>${text}</p>
+        </div>
+        `;
+        document.body.appendChild(overlay);
+
         anime({
-            targets: altriaImage,
-            scale: [1, 1.5, 1],
-            opacity: [1, 0.7, 1],
-            easing: "easeInOutQuad",
-            duration:11000
+            targets: "#npOverlay",
+            opacity: [0,1],
+            duration: 500,
+            easing: "easeOutQuad",
         });
 
-        const combatArea = document.getElementById("combatArea");
-        anime({
-            targets: combatArea,
-            backgroundColor: ["#ffffff", "#ffcccc", "#ae20c9", "#121313"],
-            easing: "easeInOutQuad",
-            duration: 11000
-        });
+        setTimeout(()=>{
+            anime({
+                targets: "#npOverlay",
+                opacity: [1,0],
+                duration: 500,
+                easing: "easeInQuad",
+                complete: () => overlay.remove(),
+            });
+        }, 2500);
     };
 
     const animateUserNoblePhantasm = (index) => {
@@ -1612,7 +1780,7 @@ del Servant*/
         anime({
             targets: servantImage,
             scale: [
-                {value: 1.2, duration: 400},
+                {value: 1.3, duration: 400},
                 {value: 1, duration: 400},
             ],
             translateY: [
@@ -1620,35 +1788,173 @@ del Servant*/
                 {value: 0, duration: 400, easing:"easeOutCubic"}
             ],
             opacity: [
-                {value: 0, duration:200},
+                {value: 0.5, duration:200},
                 {value: 1, duration:400}
             ],
             easing: "easeOutQuad",
-            duration:800
+            duration:1000
+        });
+
+        const particleEffect = document.createElement("div");
+        particleEffect.classList.add("particle-effect");
+        document.body.appendChild(particleEffect);
+
+        anime({
+            targets: particleEffect,
+            scale: [0.5, 2],
+            opacity:[1, 0],
+            duration: 1200,
+            easing: "easeOutCubic",
+            complete: () => particleEffect.remove(),
         });
     };
-    const showNoblePhantasmAlert = (text) => {
-        const title = "Altria Alter || Excalibur Morgan";
+
+    const showNoblePhantasmOverlay = (title, text, audioFile, callback = () => {}) => {
+        const overlay = document.createElement("div");
+        overlay.id = "npOverlay";
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+        overlay.style.display = "flex";
+        overlay.style.flexDirection = "column";
+        overlay.style.alignItems = "center";
+        overlay.style.justifyContent = "center";
+        overlay.style.zIndex = "1000";
+        overlay.style.opacity = "0"; // Inicia invisible para animación
+        document.body.appendChild(overlay);
     
-        Swal.fire({
-            title: title,
-            html: '<p></p>',
-            backdrop: true,
-            showConfirmButton: false,
-            didOpen: () => {
-                const swalText = Swal.getHtmlContainer().querySelector('p');
-                swalText.textContent = "";
-                let index = 0;
+        // Contenido del overlay
+        overlay.innerHTML = `
+            <div class="np-effect text-center" style="color: white; font-family: Arial, sans-serif;">
+                <h2 style="margin-bottom: 20px; font-size: 2rem;">${title}</h2>
+                <p id="npText" class="noble-phantasm-text" style="font-size: 1.2rem; white-space: pre-line;"></p>
+            </div>
+        `;
     
-                const interval = setInterval(() => {
-                    if (index < text.length) {
-                        swalText.textContent += text[index];
-                        index++;
-                    } else {
-                        clearInterval(interval);
-                    }
-                }, 55);
-            },
+       
+    
+        // Mostrar overlay con animación
+        anime({
+            targets: overlay,
+            opacity: [0, 1],
+            duration: 800,
+            easing: "easeOutQuad",
         });
+    
+        // Mostrar texto animado
+        const npTextElement = document.getElementById("npText");
+
+        let hasExecuted = false;
+        let index = 0;
+        const interval = setInterval(() => {
+            if (index < text.length) {
+                npTextElement.textContent += text[index];
+                index++;
+            } else {
+                clearInterval(interval);
+                if (!hasExecuted) {
+                    hasExecuted = true;
+                    callback();
+                }
+            }
+        }, 55);
+        
+        const audioController = playSpecificVoiceLine(audioFile);
+    
+        // Partículas
+        const particleContainer = document.createElement("div");
+        particleContainer.id = "particleContainer";
+        particleContainer.style.position = "absolute";
+        particleContainer.style.top = "0";
+        particleContainer.style.left = "0";
+        particleContainer.style.width = "100%";
+        particleContainer.style.height = "100%";
+        particleContainer.style.pointerEvents = "none";
+        particleContainer.style.zIndex = "999"; // Debajo del overlay
+        document.body.appendChild(particleContainer);
+    
+        const generateParticles = () => {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement("div");
+                particle.style.position = "absolute";
+                particle.style.backgroundColor = Math.random() > 0.5 ? "#ae20c9" : "#000000";
+                particle.style.width = `${Math.random() * 10 + 5}px`;
+                particle.style.height = particle.style.width;
+                particle.style.borderRadius = "50%";
+                particle.style.opacity = Math.random();
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particleContainer.appendChild(particle);
+    
+                anime({
+                    targets: particle,
+                    translateY: [0, Math.random() * -200 - 100],
+                    translateX: [0, Math.random() * 100 - 50],
+                    opacity: [Math.random(), 0],
+                    duration: Math.random() * 3000 + 2000,
+                    easing: "easeOutQuad",
+                    complete: () => particle.remove(),
+                });
+            }
+        };
+    
+        const particleInterval = setInterval(generateParticles, 500);
+        generateParticles();
+    
+        // Cerrar overlay
+        const closeOverlay = () => {
+            clearInterval(interval);
+            clearInterval(particleInterval);
+            if (!hasExecuted) {
+                hasExecuted = true;
+                callback();
+            }
+            audioController.stop();
+            anime({
+                targets: overlay,
+                opacity: [1, 0],
+                duration: 500,
+                easing: "easeInQuad",
+                complete: () => {
+                    overlay.remove();
+                    particleContainer.remove();
+                },
+            });
+        };
+    
+        overlay.addEventListener("click", closeOverlay);
+    
+        setTimeout(() => {
+            if (!hasExecuted) {
+                closeOverlay();
+            }
+        }, text.length * 55 + 1000);
+    };
+    
+    
+    
+
+    const updateHealthBar = (element, currentHp, maxHp) => {
+
+        if (!element) {
+            console.error("Health bar element not found!");
+            return;
+        }
+        if(maxHp === 0){
+            console.error("max hp cannot be zero");
+            return;
+        }
+        const percentage = Math.max(0, (currentHp / maxHp) * 100);
+        anime({
+            targets: element,
+            width: `${percentage}%`,
+            backgroundColor: currentHp < maxHp * 0.3 ? "#ff0000" : "#00ff00",
+            duration: 500,
+        });
+        element.style.width = `${percentage}%`;
+
     };
     
